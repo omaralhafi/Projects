@@ -1,0 +1,47 @@
+from selenium import webdriver
+from selenium.webdriver.common.by import By
+import time
+
+# Configure the browser (Safari in this case)
+driver = webdriver.Safari()  # Safari WebDriver doesn't require additional installation
+
+# Load the Texas Longhorns ticket page
+driver.get("https://texaslonghorns.evenue.net/cgi-bin/ncommerce3/SEGetEventInfo?linkID=tex-ath&groupCode=&ticketCode=ST:AMTX:FB24:FB07:S10&shopperContext=ST&pc=&cartNum=&dataAccId=869&locale=en_US&siteId=ev_tex-ath")
+
+# Function to claim the ticket
+def claim_ticket():
+    while True:
+        try:
+            # Wait for the "+" button to be visible and click it
+            plus_button = driver.find_element(By.XPATH, "//button[contains(@aria-label, 'Increase Quantity')]")
+            plus_button.click()
+            print("Clicked + button to add ticket")
+
+            # Wait for the "Add to Cart" button and click it
+            add_to_cart_button = driver.find_element(By.ID, "add-to-cart")  # Replace ID if needed
+            add_to_cart_button.click()
+            print("Clicked Add to Cart button")
+
+            # Wait for the next screen to load
+            time.sleep(5)
+
+            # Check for "We are sorry" message
+            if "We are sorry" in driver.page_source:
+                print("Tickets unavailable, retrying...")
+                retry_button = driver.find_element(By.LINK_TEXT, "here")
+                retry_button.click()
+                time.sleep(10)  # Wait before trying again
+            else:
+                # If no "We are sorry", notify user
+                print("Ticket available! Proceed to purchase!")
+                break  # Exit the loop to let user continue the purchase manually
+        except Exception as e:
+            print(f"Error: {e}")
+            time.sleep(10)  # Retry after 10 seconds
+            driver.refresh()  # Refresh and try again
+
+# Run the claim_ticket function
+claim_ticket()
+
+# Close the browser after script completes (optional)
+driver.quit()
